@@ -504,16 +504,6 @@
   }
   .book-panel h3{ font-size:1.4rem; margin-bottom:8px; }
   .book-panel > p{ color:var(--ivory-dim); font-size:0.9rem; font-weight:300; margin-bottom:32px; }
-  .guest-limit-note{
-    font-size:0.8rem; font-weight:300; color:var(--ivory-dim); line-height:1.6;
-    border:1px solid var(--line); border-left:2px solid var(--brass-soft);
-    padding:14px 16px; margin:-16px 0 28px; border-radius:2px; background:rgba(184,147,90,0.04);
-  }
-  .guest-limit-note strong{ color:var(--brass); font-weight:600; }
-  .guest-limit-note #remainingCount{ color:var(--fg); }
-  .limit-box{ text-align:center; padding:20px 4px 8px; }
-  .limit-box h4{ font-family:'Fraunces', serif; font-style:italic; font-size:1.2rem; color:var(--brass); margin-bottom:12px; }
-  .limit-box p{ color:var(--ivory-dim); font-size:0.9rem; font-weight:300; max-width:40ch; margin:0 auto; line-height:1.6; }
   .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
   @media (max-width:520px){ .form-row{ grid-template-columns:1fr; } }
   .field{ display:flex; flex-direction:column; gap:8px; }
@@ -1034,7 +1024,7 @@
 <div class="wrap reserve-grid">
 <div>
 <h2>Book your table</h2>
-<p class="reserve-copy">For parties of five or more, please call our reservations team directly — we'll take care of the rest. For your security, unregistered guests can submit up to 2 online requests; phone bookings have no limit.</p>
+<p class="reserve-copy">For parties of five or more, please call our reservations team directly — we'll take care of the rest.</p>
 <div class="contact-list">
 <a href="tel:+441438222215">
 <span class="k">PHONE</span>
@@ -1057,7 +1047,6 @@
 <div class="book-panel">
 <h3>Request a table</h3>
 <p>Tell us when you'd like to visit — our team will confirm by phone or email.</p>
-<p class="guest-limit-note">For your security, guests can request up to <strong>2 tables</strong> here without creating an account — <span id="remainingCount">2 requests remaining</span>. Need more? Just call us directly, any time, with no limit.</p>
 <form id="bookForm" onsubmit="event.preventDefault(); submitBooking();">
 <div class="form-row">
 <div class="field">
@@ -1098,13 +1087,6 @@
 <div id="formError" role="alert" style="display:none; margin-top:14px; font-size:0.84rem; color:var(--ember-bright); text-align:center;"></div>
 </form>
 <div id="formConfirm" style="display:none; text-align:center; padding:24px 0; color:var(--ivory-dim); font-family:'Fraunces',serif; font-style:italic;"><span id="confirmText">Thank you — your request has been received.</span></div>
-<div id="formLimit" style="display:none;">
-  <div class="limit-box">
-    <h4>You've reached the request limit</h4>
-    <p>For everyone's safety, we cap online requests at 2 per guest without an account. Please call us directly to arrange your table — there's no limit over the phone, and our team can usually confirm on the spot.</p>
-    <a class="btn-primary" href="tel:+441438222215" style="display:inline-block; margin-top:8px;">Call 01438 222 215</a>
-  </div>
-</div>
 <div class="book-note">Live music every Friday from 7pm — book ahead.</div>
 </div>
 </div>
@@ -1156,39 +1138,11 @@
 </footer>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer"><button class="lightbox-close" id="lightboxClose" aria-label="Close photo">×</button><img id="lightboxImg" alt=""></div>
 <script>
-  // guest booking limit — 2 requests per browser, no account required
-  const BOOKING_LIMIT = 2;
-  const BOOKING_KEY = 'lavish_guest_booking_count';
-
-  function getBookingCount(){
-    try{
-      const v = parseInt(localStorage.getItem(BOOKING_KEY) || '0', 10);
-      return isNaN(v) ? 0 : v;
-    }catch(e){ return 0; }
-  }
-  function setBookingCount(n){
-    try{ localStorage.setItem(BOOKING_KEY, String(n)); }catch(e){ /* storage unavailable — allow silently */ }
-  }
-  function updateRemainingLabel(){
-    const remaining = Math.max(0, BOOKING_LIMIT - getBookingCount());
-    const label = document.getElementById('remainingCount');
-    if(label){ label.textContent = remaining + (remaining === 1 ? ' request remaining' : ' requests remaining'); }
-  }
-  function refreshBookingUI(){
-    updateRemainingLabel();
-    if(getBookingCount() >= BOOKING_LIMIT){
-      document.getElementById('bookForm').style.display = 'none';
-      document.getElementById('formConfirm').style.display = 'none';
-      document.getElementById('formLimit').style.display = 'block';
-    }
-  }
-
   // Paste your Google Apps Script "Web app" URL between the quotes (it ends in /exec).
   // While this is empty the form runs in demo mode and sends nothing.
   const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxgkgSdgKEs5I6dGyst5U4adhI0PwJzwKY5yHsIuYG9whRGUHfIYw7JIYrmhAT7Pfib/exec';
 
   async function submitBooking(){
-    if(getBookingCount() >= BOOKING_LIMIT){ refreshBookingUI(); return; }
     const val = id => document.getElementById(id).value.trim();
     if(val('website')) return;                       // hidden trap field: only bots fill it in
 
@@ -1219,18 +1173,15 @@
         btn.disabled = false; btn.textContent = 'Request table';
         err.textContent = "We couldn't send that just now. Please try again, or call us on 01438 222 215.";
         err.style.display = 'block';
-        return;                                       // a failed send does not use up one of the 2 requests
+        return;
       }
       clearTimeout(timer);
       confirmText.textContent = "Thank you, " + payload.name.split(' ')[0] + " — your request has been received. We'll confirm by phone or email shortly.";
     }
 
-    setBookingCount(getBookingCount() + 1);
     document.getElementById('bookForm').style.display = 'none';
     document.getElementById('formConfirm').style.display = 'block';
-    updateRemainingLabel();
   }
-  refreshBookingUI();
 
   // header scroll state
   const header = document.getElementById('siteHeader');
