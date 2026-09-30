@@ -1185,7 +1185,7 @@
 
   // Paste your Google Apps Script "Web app" URL between the quotes (it ends in /exec).
   // While this is empty the form runs in demo mode and sends nothing.
-  const SHEET_ENDPOINT = '';
+  const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycby1I0HrfEvHasvyTzepURBfY3ZbAG45kFWWIv-XTeJu4cFZE_8izz7v0IDHviR1zP6Lpw/exec';
 
   async function submitBooking(){
     if(getBookingCount() >= BOOKING_LIMIT){ refreshBookingUI(); return; }
